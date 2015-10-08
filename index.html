@@ -162,6 +162,7 @@
 		}
 	</style>
 	
+	<script src="modernizr.js"></script>
 	<script src="droppick.js"></script>
 	<script src="grab.js"></script>
 	<script src="pixelmap.js"></script>
@@ -210,15 +211,21 @@
 		};
 
 		imgOriginal = new Image();
-		imgOriginal.addEventListener('load', update, false);
 		imgOriginal.src = './clouds.gif';
 
-		imgDistort = document.createElement('video');
-		imgDistort.setAttribute('loop', 'true');
-		imgDistort.setAttribute('autoplay', 'true');
-		imgDistort.setAttribute('poster', './distort.png');
-		imgDistort.addEventListener('load', update, false);
-		imgDistort.src = './distort.mp4';
+		Modernizr.on('videoautoplay', function(result) {
+			if (result) {
+				imgDistort = document.createElement('video');
+				imgDistort.setAttribute('loop', 'true');
+				imgDistort.setAttribute('autoplay', 'true');
+				imgDistort.setAttribute('poster', './distort.png');
+				imgDistort.src = './distort.mp4';
+			} else {
+				imgDistort = new Image();
+				imgDistort.src = './distort.gif';
+			}
+			distort.appendChild(imgDistort);
+		});
 
 		var autoUpdate = function() {
 			update();
@@ -230,7 +237,6 @@
 		var img = document.getElementById('image');
 		img.appendChild(imgOriginal);
 		var distort = document.getElementById('distort');
-		distort.appendChild(imgDistort);
 		
 		if (window.matchMedia('(max-width: 768px)').matches) {
 			canvas.style.height = '100vw';
