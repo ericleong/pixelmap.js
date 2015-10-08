@@ -1,0 +1,297 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="UTF-8">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>pixelmap.js</title>
+	
+	<style>
+		html, body {
+			margin: 0;
+			padding: 0;
+		}
+		
+		a {
+			text-decoration: none;
+		}
+		
+		body > h1 {
+			text-align: center;
+		}
+		
+		h1 {
+			padding-left: 1em;
+			padding-right: 1em;
+		}
+		
+		h1, h2 {
+			font-family: sans-serif;
+			font-weight: lighter;
+			font-style: normal;
+		}
+		
+		h3 {
+			font-family: sans-serif;
+			font-style: bold;
+			font-variant: small-caps;
+		}
+		
+		#sandbox {
+			display: flex;
+			justify-content: space-around;
+
+			display : -webkit-flex;
+			-webkit-justify-content: space-around;
+			
+			width: 100%;
+		}
+		
+		#sandbox > .third {
+			box-sizing: border-box;
+			flex-basis: 25vw;
+			-webkit-flex-basis: 25vw;
+			position: relative;
+		}
+		
+		#sandbox > canvas {
+			width: 25vw;
+			box-sizing: border-box;
+			flex-basis: 25vw;
+			-webkit-flex-basis: 25vw;
+			object-fit: contain;
+		}
+
+		#sandbox > .third > div {
+			width: 100%;
+		}
+
+		#sandbox > .third > div > img, #sandbox > .third > div > video {
+			width: 100%;
+		}
+		
+		#sandbox > div {
+			display: inline-block;
+		}
+		
+		.picker-container {
+			box-sizing: border-box;
+			flex-basis: 20vw;
+			-webkit-flex-basis: 20vw;
+			
+			padding: 0 1em 0 1em;
+
+			position: relative;
+			
+			width: 100%;
+			height: 3em;
+			
+			font-size: 1.25em;
+			font-family: sans-serif;
+			
+			margin-top: 1em;
+		}
+		
+		.picker-container::before {
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+		
+			padding: 1em;
+		
+			content: 'pick another image';
+			
+			text-align: center;
+		}
+		
+		.picker-container > input {
+			width: 100%;
+			height: 100%;
+		
+			cursor: pointer;
+		
+			opacity: 0 !important;
+		}
+		
+		#footer {
+			font-size: 10pt;
+			text-align: center;
+			margin-bottom: 0.5em;
+		}
+		
+		@media (max-width: 768px) {
+			
+			#sandbox {
+				flex-wrap: wrap;
+				-webkit-flex-wrap: wrap;
+			}
+			
+			#sandbox > canvas {
+				width: 100vw;
+				flex-basis: 100vw;
+				-webkit-flex-basis: 100vw;
+			}
+			
+			#sandbox > .third {
+				width: 50vw;
+				padding: 5%;
+				
+				flex-basis: auto;
+				-webkit-flex-basis: auto;
+			}
+			
+			#image-container {
+				order: 1;
+			}
+			
+			#distort-container {
+				order: 2;
+			}
+			
+			.picker-container {
+				margin-top: 0.5em;
+				padding: 0 0.25em 0 0.25em;
+			}
+			
+			.picker-container::before {
+				padding: 0.25em;
+			}
+		}
+	</style>
+	
+	<script src="droppick.js"></script>
+	<script src="grab.js"></script>
+	<script src="pixelmap.js"></script>
+</head>
+</head>
+<body>
+	<h1><a href="https://github.com/ericleong/pixelmap.js">pixelmap.js</a></h1>
+	<div id="sandbox">
+		<div id="image-container" class="third">
+			<div id="image"></div>
+			<div class="picker-container"><input id="picker-image" type="file" accept="*/*" /></div>
+		</div>
+		<canvas id="canvas" width="640" height="640"></canvas>
+		<div id="distort-container" class="third">
+			<div id="distort"></div>
+			<div class="picker-container"><input id="picker-distort" type="file" accept="*/*" /></div>
+		</div>
+	</div>
+	<div id="footer">
+		<a href="./undistort.png">undistorted image</a>
+	</div>
+	
+	<script type="text/javascript">
+		var canvas = document.getElementById('canvas');
+		var buffer = document.createElement('canvas');
+		var bufferContext = buffer.getContext('2d');
+		var pixelmap = new Pixelmap(canvas);
+		
+		var imgOriginal, imgDistort;
+		
+		var update = function() {
+			if (imgOriginal && imgDistort) {
+				pixelmap.clear();
+				pixelmap.setViewport(canvas.width, canvas.height);
+				
+				if (imgDistort instanceof HTMLVideoElement) {
+					buffer.width = canvas.width;
+					buffer.height = canvas.height;
+					
+					bufferContext.drawImage(imgDistort, 0, 0, buffer.width, buffer.height);
+					pixelmap.draw(imgOriginal, buffer);
+				} else {
+					pixelmap.draw(imgOriginal, imgDistort);
+				}
+			}
+		};
+
+		imgOriginal = new Image();
+		imgOriginal.addEventListener('load', update, false);
+		imgOriginal.src = './clouds.gif';
+
+		imgDistort = document.createElement('video');
+		imgDistort.setAttribute('loop', 'true');
+		imgDistort.setAttribute('autoplay', 'true');
+		imgDistort.setAttribute('poster', './distort.png');
+		imgDistort.addEventListener('load', update, false);
+		imgDistort.src = './distort.mp4';
+
+		var autoUpdate = function() {
+			update();
+			window.requestAnimationFrame(autoUpdate);
+		};
+		
+		window.requestAnimationFrame(autoUpdate);
+		
+		var img = document.getElementById('image');
+		img.appendChild(imgOriginal);
+		var distort = document.getElementById('distort');
+		distort.appendChild(imgDistort);
+		
+		if (window.matchMedia('(max-width: 768px)').matches) {
+			canvas.style.height = '100vw';
+		} else {
+			canvas.style.height = '25vw';
+		}
+		
+		function setSize(width, height) {
+			canvas.width = width;
+			canvas.height = height;
+			
+			if (window.matchMedia('(max-width: 768px)').matches) {
+				canvas.style.height = (height / width * 100).toFixed(8) + 'vw';
+			} else {
+				canvas.style.height = (height / width * 25).toFixed(8) + 'vw';
+			}
+		}
+		
+		var updater = function(items, img, isBase, callback) {
+			grab(items, function(item) {
+				if (item instanceof HTMLImageElement) {
+					
+					if (isBase) {
+						setSize(item.naturalWidth, item.naturalHeight);
+					}
+					
+					callback(item);
+				} else if (item instanceof HTMLVideoElement) {
+					
+					if (isBase) {
+						setSize(item.width, item.height);
+					}
+					
+					item.setAttribute('loop', 'true');
+					item.setAttribute('autoplay', 'true');
+					
+					callback(item);
+				}
+			})
+		};
+		
+		// drag and drop
+		droppick(document.getElementById('image'), document.getElementById('picker-image'), function(items) {
+			updater(items, imgOriginal, true, function(imgNew) {
+				if (imgOriginal) {
+					img.removeChild(imgOriginal);
+				}
+				imgOriginal = imgNew;
+				img.appendChild(imgOriginal);
+			});
+		});
+
+		droppick(document.getElementById('distort'), document.getElementById('picker-distort'), function(items) {
+			updater(items, imgDistort, false, function(imgNew) {
+				if (imgDistort) {
+					distort.removeChild(imgDistort);
+				}
+				imgDistort = imgNew;
+				distort.appendChild(imgDistort);
+			});
+		});
+	</script>
+</body>
+</html>
