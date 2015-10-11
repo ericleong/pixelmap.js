@@ -122,8 +122,7 @@ Pixelmap.prototype.getFragmentShader = function() {
 			uniform sampler2D uMap;\
 \
 			void main(void) {\
-				vec4 position = texture2D(uMap, vTextureCoord);\
-				gl_FragColor = texture2D(uImage, vec2(position.x, position.y));\
+				gl_FragColor = texture2D(uImage, texture2D(uMap, vTextureCoord).xy);\
 			}';
 }
 
