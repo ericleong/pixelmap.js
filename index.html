@@ -116,9 +116,47 @@
 			opacity: 0 !important;
 		}
 		
+		form {
+			font-size: 0;
+			position: relative;
+			margin-top: 20px;
+		}
+		
+		label {
+			width: 50%;
+			display: inline-block;
+		}
+		
+		input[type="radio"] {
+			display: none;
+		}
+		
+		label > span {
+			display: inline-block;
+			width: 100%;
+
+			text-align: center;
+			padding: 1em;
+			box-sizing: border-box;
+			
+			font-size: 14pt;
+			font-family: sans-serif;
+		}
+		
+		input[type="radio"] + span:hover {
+			cursor: pointer;
+			background-color: lightgray;
+		}
+		
+		input[type="radio"]:checked + span {
+			color: white;
+			background-color: darkgray;
+		}
+		
 		#footer {
 			font-size: 10pt;
 			text-align: center;
+			margin-top: 0.5em;
 			margin-bottom: 0.5em;
 		}
 		
@@ -131,11 +169,15 @@
 			
 			#sandbox > canvas {
 				width: 100vw;
+			}
+			
+			#sandbox > #canvas-container {
+				width: 100vw;
 				flex-basis: 100vw;
 				-webkit-flex-basis: 100vw;
 			}
 			
-			#sandbox > .third {
+			#sandbox > .third.option {
 				width: 50vw;
 				padding: 5%;
 				
@@ -159,6 +201,14 @@
 			.picker-container::before {
 				padding: 0.25em;
 			}
+			
+			label > span {
+				padding: 1em 0 1em 0;
+			}
+			
+			form {
+				margin-top: 3.5vw;
+			}
 		}
 	</style>
 	
@@ -171,12 +221,18 @@
 <body>
 	<h1><a href="https://github.com/ericleong/pixelmap.js">pixelmap.js</a></h1>
 	<div id="sandbox">
-		<div id="image-container" class="third">
+		<div id="image-container" class="third option">
 			<div id="image"></div>
 			<div class="picker-container"><input id="picker-image" type="file" accept="*/*" /></div>
 		</div>
-		<canvas id="canvas" width="640" height="640"></canvas>
-		<div id="distort-container" class="third">
+		<div id="canvas-container" class="third">
+			<canvas id="canvas" width="640" height="640"></canvas>
+			<form>
+				<label><input id="map-distort" type="radio" name="mapping" value="distort" checked /><span>distort</span></label>
+				<label><input id="map-displace" type="radio" name="mapping" value="displace" /><span>displace</span></label>
+			</form>
+		</div>
+		<div id="distort-container" class="third option">
 			<div id="distort"></div>
 			<div class="picker-container"><input id="picker-distort" type="file" accept="*/*" /></div>
 		</div>
@@ -298,6 +354,15 @@
 				distort.appendChild(imgDistort);
 			});
 		});
+		
+		var mapper = function() {
+				if (this.checked) {
+					pixelmap.initShaders(pixelmap.getShaderForType(this.value));
+				}
+		};
+		
+		document.getElementById('map-distort').addEventListener('change', mapper);
+		document.getElementById('map-displace').addEventListener('change', mapper);
 	</script>
 </body>
 </html>
