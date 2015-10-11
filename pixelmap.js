@@ -27,8 +27,10 @@
 //
 // constructor
 //
-var Pixelmap = function(canvas) {
+var Pixelmap = function(canvas, mapType) {
 	var gl = this.initWebGL(canvas);      // Initialize the GL context
+	
+	mapType = mapType || 'distort';
 	
 	// Only continue if WebGL is available and working
 	
@@ -42,7 +44,7 @@ var Pixelmap = function(canvas) {
 		// Initialize the shaders; this is where all the lighting for the
 		// vertices and so forth is established.
 		
-		this.initShaders();
+		this.initShaders(this.getShaderForType(mapType));
 		
 		// Here's where we call the routine that builds all the objects
 		// we'll be drawing.
@@ -79,10 +81,23 @@ Pixelmap.prototype.initWebGL = function(canvas) {
 //
 // create gl program
 //
-Pixelmap.prototype.createProgram = function(gl) {
+Pixelmap.prototype.getShaderForType = function(mapType) {
+	if (mapType == 'displace') {
+		return 'gl_FragColor = texture2D(uImage, vTextureCoord - (texture2D(uMap, vTextureCoord).xy - vec2(0.5, 0.5)));'
+	} else if (mapType == 'distort') {
+		return 'gl_FragColor = texture2D(uImage, texture2D(uMap, vTextureCoord).xy);'
+	} else {
+		return 'gl_FragColor = texture2D(uImage, vTextureCoord);'
+	}
+}
+
+//
+// create gl program
+//
+Pixelmap.prototype.createProgram = function(gl, shader) {
 
 	var vertexShader = Pixelmap.prototype.getShader(gl, this.getVertexShader(), gl.VERTEX_SHADER);
-	var fragmentShader = Pixelmap.prototype.getShader(gl, this.getFragmentShader(), gl.FRAGMENT_SHADER);
+	var fragmentShader = Pixelmap.prototype.getShader(gl, this.getFragmentShader(shader), gl.FRAGMENT_SHADER);
 	
 	// Create the shader programs
 	
@@ -113,7 +128,7 @@ Pixelmap.prototype.getVertexShader = function() {
 			}';
 }
 
-Pixelmap.prototype.getFragmentShader = function() {
+Pixelmap.prototype.getFragmentShader = function(shader) {
 	return 'precision mediump float;\
 \
 			varying highp vec2 vTextureCoord;\
@@ -122,18 +137,18 @@ Pixelmap.prototype.getFragmentShader = function() {
 			uniform sampler2D uMap;\
 \
 			void main(void) {\
-				gl_FragColor = texture2D(uImage, texture2D(uMap, vTextureCoord).xy);\
+				' + shader + '\
 			}';
 }
 
 //
 // getShader
 //
-Pixelmap.prototype.getShader = function(gl, source, type) {
+Pixelmap.prototype.getShader = function(gl, source, mapType) {
 	// Now figure out what type of shader script we have,
 	// based on its MIME type.
 	
-	var shader = gl.createShader(type);
+	var shader = gl.createShader(mapType);
 	
 	// Send the source to the shader object
 	
@@ -156,10 +171,10 @@ Pixelmap.prototype.getShader = function(gl, source, type) {
 //
 // initShaders
 //
-Pixelmap.prototype.initShaders = function() {
+Pixelmap.prototype.initShaders = function(shader) {
 
 	// create program
-	this.program = this.createProgram(this.gl);
+	this.program = this.createProgram(this.gl, shader);
 	
 	// textures
 	this.uImage = this.gl.getUniformLocation(this.program, 'uImage');
