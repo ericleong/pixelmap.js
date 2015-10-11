@@ -30,7 +30,7 @@
 var Pixelmap = function(canvas, mapType) {
 	var gl = this.initWebGL(canvas);      // Initialize the GL context
 	
-	mapType = mapType || 'distort';
+	mapType = mapType || 'direct';
 	
 	// Only continue if WebGL is available and working
 	
@@ -84,7 +84,7 @@ Pixelmap.prototype.initWebGL = function(canvas) {
 Pixelmap.prototype.getShaderForType = function(mapType) {
 	if (mapType == 'displace') {
 		return 'gl_FragColor = texture2D(uImage, vTextureCoord - (texture2D(uMap, vTextureCoord).xy - vec2(0.5, 0.5)));'
-	} else if (mapType == 'distort') {
+	} else if (mapType == 'direct') {
 		return 'gl_FragColor = texture2D(uImage, texture2D(uMap, vTextureCoord).xy);'
 	} else {
 		return 'gl_FragColor = texture2D(uImage, vTextureCoord);'
