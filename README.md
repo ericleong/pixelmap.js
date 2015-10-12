@@ -19,7 +19,7 @@ The source image is a `256x256` image where the red channel maps to `x` and the 
 
 In the transformed image, the `(r, g)` color at `(i, j)` contains the original `(x, y)` position.
 
-### displacement
+### displace
 
 | no transform | transformed |
 | --- | --- |
@@ -44,7 +44,7 @@ var pixelmap = new Pixelmap(<canvas>, <type>);
 ```
 
 * `<canvas>` is the desired [`<canvas>` element](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) to draw on.
-* `<type>` is the type of the displacement map, either `"direct"` or `"displacement"`.
+* `<type>` is the type of the displacement map, either `"direct"` or `"displace"`.
 
 ```javascript
 pixelmap.draw(<image>, <map>);
